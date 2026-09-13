@@ -8,7 +8,7 @@ Returns immediately with the message_id. Does NOT wait for a reply
 
 Usage:
   python3 a2a_send.py --to vi --text "Hello"
-  python3 a2a_send.py --to grok --text "Hello" --key-file ~/.a2a/send_key
+  python3 a2a_send.py --to grok --text "Hello" --key-file ~/.a2a/agent_key
   python3 a2a_send.py --to vi --file /path/to/message.txt
 
   # As a library:
@@ -17,7 +17,7 @@ Usage:
 
 Config (env or args):
   A2A_SERVER_URL     — default http://100.76.81.125:8765
-  A2A_SEND_KEY_FILE  — default ~/.a2a/send_key
+  A2A_SEND_KEY_FILE  — default ~/.a2a/agent_key (your agent key)
   A2A_PROXY          — optional HTTP proxy (e.g. for tailnet from sandbox)
 """
 
@@ -28,7 +28,7 @@ import sys
 import urllib.request
 
 DEFAULT_SERVER_URL = "http://100.76.81.125:8765"
-DEFAULT_KEY_FILE = os.path.expanduser("~/.a2a/send_key")
+DEFAULT_KEY_FILE = os.path.expanduser("~/.a2a/agent_key")
 
 
 def _build_opener(url):
@@ -49,7 +49,7 @@ def send_message(to, text, server_url=None, key_file=None):
     key_file = key_file or os.environ.get("A2A_SEND_KEY_FILE", DEFAULT_KEY_FILE)
 
     with open(key_file) as f:
-        send_key = f.read().strip()
+        agent_key = f.read().strip()
 
     url = f"{server_url}/v1/agents/{to}/message"
     payload = {"text": text}
@@ -58,7 +58,7 @@ def send_message(to, text, server_url=None, key_file=None):
         url,
         data=json.dumps(payload).encode(),
         headers={
-            "Authorization": f"Bearer {send_key}",
+            "Authorization": f"Bearer {agent_key}",
             "Content-Type": "application/json",
         },
         method="POST",
@@ -78,7 +78,7 @@ def main():
     parser.add_argument("--text", help="Message text")
     parser.add_argument("--file", help="Read message text from file")
     parser.add_argument("--server-url", help="Override server URL")
-    parser.add_argument("--key-file", help="Override send_key file path")
+    parser.add_argument("--key-file", help="Override agent key file path")
     parser.add_argument("--quiet", action="store_true", help="Only output message_id")
     args = parser.parse_args()
 
